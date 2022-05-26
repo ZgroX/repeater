@@ -81,16 +81,20 @@ def main():
 
 
 def request_sender(name, start, stop, ratio, link, file, stat=False):
+    real_start = datetime.datetime.now()
     while datetime.datetime.now() < stop:
         if start < datetime.datetime.now():
             stats[name] += 1
             req.post(link, files={'pdf': open(file, 'rb')})
             if stat:
-                print(f'Requests send: {sum(stats.values())}\r', end="")
+                t = (datetime.datetime.now() - real_start).total_seconds()
+                s = sum(stats.values())
+                print(f'Requests sent: {s}, time elapsed: {str(t)}, | {s/t} r/s\r', end="")
             if ratio != 0:
                 time.sleep(60 / ratio)
         else:
             time.sleep(60)
+            real_start = datetime.datetime.now()
 
 
 if __name__ == '__main__':
