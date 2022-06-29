@@ -6,6 +6,7 @@ import requests as req
 import os
 from threading import Thread
 from collections import defaultdict
+import random
 
 stats = defaultdict(int)
 
@@ -21,6 +22,7 @@ def main():
     parser.add_argument('-r', '--ratio', type=int, default=0, help='Ratio of request sending per minute, 0 is max, '
                                                                    '-r 1 means 1 request per minute')
     parser.add_argument('-f', '--file', type=str, help='Path to the file to send')
+    parser.add_argument('-rd', '--random', type=str, default=0, help='Sleep is 60/ratio, random defines the percent of this number to add/delete to this equation')
     parser.add_argument('-t', '--threads', type=int, default=1, help='Number of threads used to execute request '
                                                                      'repetition. default = 1, system max = 0')
     parser.add_argument('-c', '--config', type=str, help='Path to the config file in format:\n'
@@ -37,6 +39,7 @@ def main():
     end_date: datetime
     link: str
     ratio: int
+    random_c: int
     file: str
     threads: int
     if args.config is not None:
@@ -49,6 +52,7 @@ def main():
         ratio = int(config["Ratio"])
         file = config["File"]
         threads = int(config["Threads"])
+        random_c = int(config["Random"])
     elif args.link is None:
         raise AssertionError('Link must be provided')
     elif args.file is None:
@@ -66,6 +70,7 @@ def main():
         link = args.link
         ratio = args.ratio
         file = args.file
+        random_c = args.random
 
         if args.threads == 0:
             threads = os.cpu_count()
@@ -74,13 +79,13 @@ def main():
 
     # noinspection PyUnboundLocalVariable
     for x in range(1, threads):
-        t = Thread(target=request_sender, args=(x, start_date, end_date, ratio, link, file))
+        t = Thread(target=request_sender, args=(x, start_date, end_date, ratio, link, file, random_c))
         t.start()
-    t = Thread(target=request_sender, args=(0, start_date, end_date, ratio, link, file, True))
+    t = Thread(target=request_sender, args=(0, start_date, end_date, ratio, link, file, random_c, True))
     t.start()
 
 
-def request_sender(name, start, stop, ratio, link, file, stat=False):
+def request_sender(name, start, stop, ratio, link, file, random_c, stat=False):
     real_start = datetime.datetime.now()
     while datetime.datetime.now() < stop:
         if start < datetime.datetime.now():
@@ -91,7 +96,9 @@ def request_sender(name, start, stop, ratio, link, file, stat=False):
                 s = sum(stats.values())
                 print(f'Requests sent: {s}, time elapsed: {str(t)}, | {s/t} r/s\r', end="")
             if ratio != 0:
-                time.sleep(60 / ratio)
+                t = 60 / ratio
+                t += random.randint(-random_c, random_c)/100 * t
+                time.sleep(t)
         else:
             time.sleep(60)
             real_start = datetime.datetime.now()
