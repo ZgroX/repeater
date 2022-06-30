@@ -1,4 +1,4 @@
-FROM public.ecr.aws/sam/build-python3.8:1.53.0-20220629192010
+FROM public.ecr.aws/bitnami/python:3.8.13-debian-11-r1
 
 WORKDIR /app
 
