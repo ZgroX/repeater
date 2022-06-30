@@ -109,7 +109,8 @@ def print_stats(start, stop):
 
 
 async def request_sender(name, start, stop, ratio, link, file, random_c):
-    file_bytes = open(file, 'rb')
+    with open(file, 'rb') as f:
+        file_bytes = f.read()
     while datetime.datetime.now() < stop:
         if start < datetime.datetime.now():
 
