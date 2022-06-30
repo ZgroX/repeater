@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM public.ecr.aws/sam/build-python3.8:1.53.0-20220629192010
 
 WORKDIR /app
 
