@@ -83,11 +83,18 @@ def main():
 
     # noinspection PyUnboundLocalVariable
     for x in range(0, threads):
-        t = Thread(target=asyncio.run, args=(request_sender(x, start_date, end_date, ratio, link, file, random_c),))
+        t = Thread(target=try_async, args=(request_sender, x, start_date, end_date, ratio, link, file, random_c))
         t.start()
 
     t = Thread(target=print_stats, args=(start_date, end_date))
     t.start()
+
+
+def try_async(method, *args):
+    try:
+        asyncio.run(method(*args))
+    except Exception as e:
+        pass
 
 
 def print_stats(start, stop):
@@ -104,11 +111,12 @@ def print_stats(start, stop):
 
 
 async def request_sender(name, start, stop, ratio, link, file, random_c):
+    file_bytes = open(file, 'rb')
     while datetime.datetime.now() < stop:
         if start < datetime.datetime.now():
             stats[name] += 1
             async with aiohttp.ClientSession() as session:
-                async with session.post(link, data={'pdf': open(file, 'rb')}) as xd:
+                async with session.post(link, data={'pdf': file_bytes}) as xd:
                     pass
 
             if ratio != 0:
