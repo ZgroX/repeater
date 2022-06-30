@@ -91,10 +91,8 @@ def main():
 
 
 def try_async(method, *args):
-    try:
-        asyncio.run(method(*args))
-    except Exception as e:
-        pass
+    asyncio.run(method(*args))
+
 
 
 def print_stats(start, stop):
@@ -114,11 +112,14 @@ async def request_sender(name, start, stop, ratio, link, file, random_c):
     file_bytes = open(file, 'rb')
     while datetime.datetime.now() < stop:
         if start < datetime.datetime.now():
-            stats[name] += 1
-            async with aiohttp.ClientSession() as session:
-                async with session.post(link, data={'pdf': file_bytes}) as xd:
-                    pass
 
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(link, data={'pdf': file_bytes}) as xd:
+                        pass
+            except Exception as e:
+                print(e)
+            stats[name] += 1
             if ratio != 0:
                 t = 60 / ratio
                 t += random.randint(-random_c, random_c) / 100 * t
